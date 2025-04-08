@@ -200,3 +200,11 @@ python train.py --steps=240000 --lr=0.00008 --name=<your name>
 
 ## Acknowledgements
 * Our Viewer is adapted from DSO.
+
+* Pagnolin is from https://github.com/zachteed/Pangolin/tree/93712f0666003f392ac8414bc2c0a009081e91c1
+
+* VCPKG is from https://github.com/microsoft/vcpkg/tree/e809a42f87565e803b2178a0c11263f462d1800a
+
+* PyBind11 is from https://github.com/pybind/pybind11/tree/787d2c88cafa4d07fb38c9519c485a86323cfcf4
+
+* DBoW2 is from https://github.com/lahavlipson/DBoW2/tree/89f8b270270fa68a399c10cd90427a9f7ec4fa81
