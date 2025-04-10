@@ -307,6 +307,6 @@ PYBIND11_MODULE(dpviewerx, m) {
                   const torch::Tensor,
                   const torch::Tensor>())
     .def("update_image", &Viewer::update_image)
-    .def("loop", &Viewer::loop);
+    .def("loop", &Viewer::loop)
     .def("join", &Viewer::join);
 }
