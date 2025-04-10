@@ -385,6 +385,7 @@ class DPVO:
 
         if self.viewer is not None:
             self.viewer.update_image(image.contiguous())
+            self.viewer.loop()
 
         image = 2 * (image[None,None] / 255.0) - 0.5
         
