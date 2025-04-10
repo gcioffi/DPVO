@@ -50,8 +50,7 @@ class CMakeBuild(build_ext):
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}".format(extdir),
             "-DPYTHON_EXECUTABLE={}".format(sys.executable),
             "-DCMAKE_BUILD_TYPE={}".format(cfg),  # not used on MSVC, but no harm
-            "-DTORCH_PATH={}".format(torch.__path__[0]),
-            "-DCMAKE_PREFIX_PATH=/root/miniconda3/envs/dpvo"
+            "-DTORCH_PATH={}".format(torch.__path__[0])
         ]
         build_args = ["--verbose"]
         # Adding CMake arguments set as environment variable
