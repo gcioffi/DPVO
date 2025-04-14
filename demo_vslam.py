@@ -66,11 +66,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--network', type=str, default='models/dpvo.pth')
     parser.add_argument('--config', default="config/default.yaml")
+    parser.add_argument('--calib', required=True)
     parser.add_argument('--stride', type=int, default=2)
     parser.add_argument('--viz', action="store_true")
     parser.add_argument('--show_img', action="store_true")
     parser.add_argument('--trials', type=int, default=1)
-    parser.add_argument('--eurocdir', default="/datasets/EuRoC")
+    parser.add_argument('--datasetdir', required=True)
     parser.add_argument('--scene', required=True)
     parser.add_argument('--backend_thresh', type=float, default=64.0)
     parser.add_argument('--plot', action="store_true")
@@ -88,10 +89,11 @@ if __name__ == '__main__':
     torch.manual_seed(1234)
 
     scene = args.scene   
-    imagedir = os.path.join(args.eurocdir, scene, "mav0/cam0/data")
+    imagedir = os.path.join(args.eurocdir, scene)
     
     print("\nRunning VO...")
-    traj_est, timestamps = run(cfg, args.network, imagedir, "calib/euroc.txt", args.stride, args.viz, args.show_img)
+    calib_fn = os.path.join("calib", args.calib)
+    traj_est, timestamps = run(cfg, args.network, imagedir, calib_fn, args.stride, args.viz, args.show_img)
 
     if args.out_traj_path is not None:
         images_list = sorted(glob.glob(os.path.join(imagedir, "*.png")))[::args.stride]
