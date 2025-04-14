@@ -89,7 +89,7 @@ if __name__ == '__main__':
     torch.manual_seed(1234)
 
     scene = args.scene   
-    imagedir = os.path.join(args.eurocdir, scene)
+    imagedir = os.path.join(args.datasetdir, scene)
     
     print("\nRunning VO...")
     calib_fn = os.path.join("calib", args.calib)
