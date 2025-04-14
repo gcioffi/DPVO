@@ -41,6 +41,49 @@ def image_stream(queue, imagedir, calib, stride, skip=0):
     queue.put((-1, image, intrinsics))
 
 
+def image_stream_fisheye(queue, imagedir, calib, stride, skip=0):
+    """ image generator """
+
+    calib = np.loadtxt(calib, delimiter=" ")
+    fx, fy, cx, cy = calib[:4]
+    d1, d2, d3, d4 = calib[4:8]
+    w, h = calib[8:10].astype(int)
+
+    K = np.eye(3)
+    K[0,0] = fx
+    K[0,2] = cx
+    K[1,1] = fy
+    K[1,2] = cy
+    new_K = K.copy()
+
+    D = np.array([[d1], [d2], [d3], [d4]])
+
+    map1, map2 = cv2.fisheye.initUndistortRectifyMap(K, D, np.eye(3), new_K, (w, h), cv2.CV_16SC2)
+
+    img_exts = ["*.png", "*.jpeg", "*.jpg"]
+    image_list = sorted(chain.from_iterable(Path(imagedir).glob(e) for e in img_exts))[skip::stride]
+    assert os.path.exists(imagedir), imagedir
+
+    for t, imfile in enumerate(image_list):
+        image = cv2.imread(str(imfile))
+        if len(calib) > 4:
+            image = cv2.remap(image, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+
+        if 0:
+            image = cv2.resize(image, None, fx=0.5, fy=0.5)
+            intrinsics = np.array([fx / 2, fy / 2, cx / 2, cy / 2])
+
+        else:
+            intrinsics = np.array([fx, fy, cx, cy])
+            
+        h, w, _ = image.shape
+        image = image[:h-h%16, :w-w%16]
+
+        queue.put((t, image, intrinsics))
+
+    queue.put((-1, image, intrinsics))
+
+
 def video_stream(queue, imagedir, calib, stride, skip=0):
     """ video generator """
 

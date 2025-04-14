@@ -15,7 +15,7 @@ from evo.tools import file_interface
 from dpvo.config import cfg
 from dpvo.dpvo import DPVO
 from dpvo.plot_utils import plot_trajectory
-from dpvo.stream import image_stream
+from dpvo.stream import image_stream, image_stream_fisheye
 from dpvo.utils import Timer
 
 SKIP = 0
@@ -26,12 +26,15 @@ def show_image(image, t=0):
     cv2.waitKey(t)
 
 @torch.no_grad()
-def run(cfg, network, imagedir, calib, stride=1, viz=False, show_img=False):
+def run(cfg, network, imagedir, calib, fisheye, stride=1, viz=False, show_img=False):
 
     slam = None
 
     queue = Queue(maxsize=8)
     reader = Process(target=image_stream, args=(queue, imagedir, calib, stride, 0))
+    if fisheye:
+        print(f"Assuming Fysheye lenses!")
+        reader = Process(target=image_stream_fisheye, args=(queue, imagedir, calib, stride, 0))
     reader.start()
 
     img_cnt = 0
@@ -69,6 +72,7 @@ if __name__ == '__main__':
     parser.add_argument('--calib', required=True)
     parser.add_argument('--stride', type=int, default=2)
     parser.add_argument('--viz', action="store_true")
+    parser.add_argument('--fisheye', action="store_true")
     parser.add_argument('--show_img', action="store_true")
     parser.add_argument('--trials', type=int, default=1)
     parser.add_argument('--datasetdir', required=True)
@@ -93,7 +97,7 @@ if __name__ == '__main__':
     
     print("\nRunning VO...")
     calib_fn = os.path.join("calib", args.calib)
-    traj_est, timestamps = run(cfg, args.network, imagedir, calib_fn, args.stride, args.viz, args.show_img)
+    traj_est, timestamps = run(cfg, args.network, imagedir, calib_fn, args.fisheye, args.stride, args.viz, args.show_img)
 
     if args.out_traj_path is not None:
         images_list = sorted(glob.glob(os.path.join(imagedir, "*.png")))[::args.stride]
