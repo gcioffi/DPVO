@@ -170,6 +170,20 @@ class DPVO:
         t0, dP = self.pg.delta[t]
         return dP * self.get_pose(t0)
 
+    def return_trajectory(self):
+        """ interpolate missing poses """
+        self.traj = {}
+        for i in range(self.n):
+            self.traj[self.pg.tstamps_[i]] = self.pg.poses_[i]
+
+        poses = [self.get_pose(t) for t in range(self.counter)]
+        poses = lietorch.stack(poses, dim=0)
+        poses = poses.inv().data.cpu().numpy()
+        tstamps = np.array(self.tlist, dtype=np.float64)
+
+        # Poses: x y z qx qy qz qw
+        return poses, tstamps
+        
     def terminate(self):
 
         if self.cfg.CLASSIC_LOOP_CLOSURE:

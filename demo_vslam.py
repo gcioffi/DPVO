@@ -61,7 +61,10 @@ def run(cfg, network, imagedir, calib, fisheye, stride=1, viz=False, show_img=Fa
 
     reader.join()
 
-    return slam.terminate()
+    odom_traj, _ = slam.return_trajectory()
+    slam_traj, timestamps = slam.terminate()
+
+    return odom_traj, slam_traj, timestamps
 
 
 if __name__ == '__main__':
@@ -70,7 +73,7 @@ if __name__ == '__main__':
     parser.add_argument('--network', type=str, default='models/dpvo.pth')
     parser.add_argument('--config', default="config/default.yaml")
     parser.add_argument('--calib', required=True)
-    parser.add_argument('--stride', type=int, default=2)
+    parser.add_argument('--stride', type=int, default=1)
     parser.add_argument('--viz', action="store_true")
     parser.add_argument('--fisheye', action="store_true")
     parser.add_argument('--show_img', action="store_true")
@@ -80,7 +83,7 @@ if __name__ == '__main__':
     parser.add_argument('--backend_thresh', type=float, default=64.0)
     parser.add_argument('--plot', action="store_true")
     parser.add_argument('--opts', nargs='+', default=[])
-    parser.add_argument("--out_traj_path", help="path to saved estimated trajectory")
+    parser.add_argument("--out_traj_prefix", help="path to saved estimated trajectory")
     args = parser.parse_args()
 
     cfg.merge_from_file(args.config)
@@ -97,18 +100,30 @@ if __name__ == '__main__':
     
     print("\nRunning VO...")
     calib_fn = os.path.join("calib", args.calib)
-    traj_est, timestamps = run(cfg, args.network, imagedir, calib_fn, args.fisheye, args.stride, args.viz, args.show_img)
+    odomtraj_est, slamtraj_est, timestamps = run(cfg, args.network, imagedir, calib_fn, args.fisheye, args.stride, args.viz, args.show_img)
 
-    if args.out_traj_path is not None:
-        images_list = sorted(glob.glob(os.path.join(imagedir, "*.png")))[::args.stride]
-        tstamps = np.asarray([float(x.split('/')[-1][:-4]) for x in images_list])
+    if args.out_traj_prefix is not None:
+        # remove
+        # images_list = sorted(glob.glob(os.path.join(imagedir, "*.png")))[::args.stride]
+        # tstamps = np.asarray([float(x.split('/')[-1][:-4]) for x in images_list])
 
-        assert traj_est.shape[0] == tstamps.shape[0], "Trajectory length does not match number of images"
+        # assert traj_est.shape[0] == tstamps.shape[0], "Trajectory length does not match number of images"
 
-        traj_out = np.zeros((tstamps.shape[0], 8))
-        traj_out[:, 0] = tstamps * 1e-9
-        traj_out[:, 1:] = traj_est
+        odomtraj_out = np.zeros((timestamps.shape[0], 8))
+        odomtraj_out[:, 0] = timestamps # * 1e-9
+        odomtraj_out[:, 1:] = odomtraj_est
 
-        out_trajfn = args.out_traj_path + '/stamped_traj_estimate.txt'
-        np.savetxt(out_trajfn, traj_out, fmt='%.6f', header='ts x y z qx qy qz qw')
-        print("Saved trajectory to {}".format(out_trajfn))
+        slamtraj_out = np.zeros((timestamps.shape[0], 8))
+        slamtraj_out[:, 0] = timestamps # * 1e-9
+        slamtraj_out[:, 1:] = slamtraj_est
+
+        out_odomtrajfn = args.out_traj_prefix + '_stamped_odom_traj_estimate.txt'
+        np.savetxt(out_odomtrajfn, odomtraj_out, fmt='%.6f', header='ts x y z qx qy qz qw')
+        print("Saved trajectory to {}".format(out_odomtrajfn))
+
+        out_slamtrajfn = args.out_traj_prefix + '_stamped_slam_traj_estimate.txt'
+        if cfg.LOOP_CLOSURE:
+            out_slamtrajfn = args.out_traj_prefix + '_stamped_slamlc_traj_estimate.txt'
+            
+        np.savetxt(out_slamtrajfn, slamtraj_out, fmt='%.6f', header='ts x y z qx qy qz qw')
+        print("Saved trajectory to {}".format(out_slamtrajfn))
