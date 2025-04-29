@@ -100,21 +100,22 @@ if __name__ == '__main__':
     
     print("\nRunning VO...")
     calib_fn = os.path.join("calib", args.calib)
-    odomtraj_est, slamtraj_est, timestamps = run(cfg, args.network, imagedir, calib_fn, args.fisheye, args.stride, args.viz, args.show_img)
+    odomtraj_est, slamtraj_est, _ = run(cfg, args.network, imagedir, calib_fn, args.fisheye, args.stride, args.viz, args.show_img)
 
     if args.out_traj_prefix is not None:
         # remove
-        # images_list = sorted(glob.glob(os.path.join(imagedir, "*.png")))[::args.stride]
-        # tstamps = np.asarray([float(x.split('/')[-1][:-4]) for x in images_list])
+        images_list = sorted(glob.glob(os.path.join(imagedir, "*.png")))[::args.stride]
+        tstamps = np.asarray([float(x.split('/')[-1][:-4]) for x in images_list])
 
-        # assert traj_est.shape[0] == tstamps.shape[0], "Trajectory length does not match number of images"
+        assert odomtraj_est.shape[0] == tstamps.shape[0], "Odom Trajectory length does not match number of images"
+        assert slamtraj_est.shape[0] == tstamps.shape[0], "SLAM Trajectory length does not match number of images"
 
-        odomtraj_out = np.zeros((timestamps.shape[0], 8))
-        odomtraj_out[:, 0] = timestamps # * 1e-9
+        odomtraj_out = np.zeros((tstamps.shape[0], 8))
+        odomtraj_out[:, 0] = tstamps * 1e-9
         odomtraj_out[:, 1:] = odomtraj_est
 
-        slamtraj_out = np.zeros((timestamps.shape[0], 8))
-        slamtraj_out[:, 0] = timestamps # * 1e-9
+        slamtraj_out = np.zeros((tstamps.shape[0], 8))
+        slamtraj_out[:, 0] = tstamps * 1e-9
         slamtraj_out[:, 1:] = slamtraj_est
 
         out_odomtrajfn = args.out_traj_prefix + '_stamped_odom_traj_estimate.txt'
