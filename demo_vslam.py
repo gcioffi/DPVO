@@ -54,7 +54,7 @@ def run(cfg, network, imagedir, calib, fisheye, stride=1, viz=False, show_img=Fa
         if slam is None:
             slam = DPVO(cfg, network, ht=image.shape[1], wd=image.shape[2], viz=viz)
 
-        with Timer("SLAM", enabled=True):
+        with Timer("SLAM", enabled=False):
             slam(t, image, intrinsics)
 
         img_cnt += 1
