@@ -1,5 +1,6 @@
 import glob
 import os
+import time
 from multiprocessing import Process, Queue
 from pathlib import Path
 
@@ -99,7 +100,15 @@ if __name__ == '__main__':
     
     print("\nRunning VO...")
     calib_fn = os.path.join("calib", args.calib)
+
+    t_initial = time.time()
+    
     slamtraj_est, _ = run(cfg, args.network, imagedir, calib_fn, args.fisheye, args.stride, args.viz, args.show_img)
+    
+    t_enlapsed = time.time() - t_initial
+
+    n = slamtraj_est.shape[0]
+    print(f"Average time per frame: {t_enlapsed/n if n > 0 else 0:.4f} seconds")
 
     if args.out_traj_prefix is not None:
         # remove
